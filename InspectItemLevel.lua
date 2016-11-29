@@ -2,7 +2,7 @@
 local Slots = {
 	"Head","Neck","Shoulder","Back","Chest","Wrist",
 	"Hands","Waist","Legs","Feet","Finger0","Finger1",
-	"Trinket0","Trinket1","MainHand","SecondaryHand"
+	"Trinket0","Trinket1"
 }
 
 local InspectCache = {}
@@ -59,7 +59,34 @@ function ILvlFrame:GetItemLvL(unit)
 			end
 		end
 	end
-	if(total < 1 or item < 15) then
+	local mainHandSkipped = false
+	local itemLink = GetInventoryItemLink(unit, GetInventorySlotInfo("MainHandSlot"));
+	if (itemLink ~= nil) then
+		local itemLevel = self:ScanForItemLevel(itemLink);
+		if(itemLevel == 750) then
+			print("InspectItemLevel: Skipped 750 MainHand.")
+			mainHandSkipped = true
+		else
+			item = item + 2
+			total = total + itemLevel + itemLevel
+		end
+	end
+	local itemLink = GetInventoryItemLink(unit, GetInventorySlotInfo("SecondaryHandSlot"));
+	if (itemLink ~= nil) then
+		local itemLevel = self:ScanForItemLevel(itemLink);
+		if(itemLevel == 750) then
+			if(mainHandSkipped) then
+				item = item + 2
+				total = total + itemLevel + itemLevel
+			else
+				print("InspectItemLevel: Skipped 750 SecondaryHand.")
+			end
+		else
+			item = item + 2
+			total = total + itemLevel + itemLevel
+		end
+	end
+	if(total < 1 or item < 16) then
 		return
 	end
 	return floor(total / item)
@@ -92,14 +119,3 @@ function ILvlFrame:ScanForItemLevel(itemLink)
 	tt:Hide();
 	return itemLevel
 end
-
-
-
-
-
-
-
-
-
-
-
