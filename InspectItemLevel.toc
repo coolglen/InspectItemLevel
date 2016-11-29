@@ -1,5 +1,5 @@
-## Interface: 60200
+## Interface: 70100
 ## Title: Inspect Average Item Level
-## Version: 1.1.0
+## Version: 1.1.1
 ## Notes: Shows the average item level in the inspection frame
 InspectItemLevel.lua
