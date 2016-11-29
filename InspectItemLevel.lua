@@ -1,5 +1,4 @@
---version 1.1.1
-local Slots = {
+--version 1.2.0
 	"Head","Neck","Shoulder","Back","Chest","Wrist",
 	"Hands","Waist","Legs","Feet","Finger0","Finger1",
 	"Trinket0","Trinket1", "MainHand", "SecondaryHand"
