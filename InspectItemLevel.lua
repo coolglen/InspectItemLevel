@@ -50,7 +50,7 @@ function ILvlFrame:intializeItemLevelInspection()
 		if InspectFrame and InspectFrame.unit then
 			ILvlFrame:SetParent(InspectFrame)
 			ILvlFrame:SetPoint("BOTTOM", InspectFrame, "RIGHT", -45, 15)
-			print("setText"..tostring(UnitIlevel))
+			
 			ILvlFrame.text:SetText(format("ilvl: ".. tostring(UnitIlevel)))
 			
 		end
@@ -99,7 +99,6 @@ function ILvlFrame:ScanForItemLevel(itemLink)
 	for i = 2, tt:NumLines() do
 		local text = _G[ tt:GetName() .."TextLeft"..i]:GetText();
 		if(text and text ~= "") then
-		--print(itemLink..",  "..tt:GetName()..", ".. text)
 			local value = tonumber(text:match(ITEM_LEVEL:gsub( "%%d", "(%%d+)" )));
 			if(value) then
 				itemLevel = value;
@@ -107,7 +106,6 @@ function ILvlFrame:ScanForItemLevel(itemLink)
 		end
 	end
 	tt:Hide();
-	print(itemLink.." : "..itemLevel..",   "..select(4,GetItemInfo(itemLink)))
 	return itemLevel
 end
 
