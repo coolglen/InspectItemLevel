@@ -9,7 +9,6 @@ local InspectCache = {}
 
 local ILvlFrame = CreateFrame("Frame", "IlvlFrame")
 ILvlFrame:RegisterEvent("INSPECT_READY")
-ILvlFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 
 ILvlFrame:ClearAllPoints()
 ILvlFrame:SetHeight(300)
@@ -54,10 +53,6 @@ function ILvlFrame:INSPECT_READY(event, GUID)
 	end
 end
 
-function ILvlFrame:PLAYER_TARGET_CHANGED()
-	isCalculatingIlevel = false;
-end
-
 function ILvlFrame:GetItemLvL(unit)
 	local total = 0;
 	for i = 1, #Slots do
@@ -69,27 +64,22 @@ function ILvlFrame:GetItemLvL(unit)
 			end
 		end
 	end
-	local mainHandSkipped = false
+	local mainHandilvl, secondHandilvl = 0, 0;
 	local itemLink = GetInventoryItemLink(unit, GetInventorySlotInfo("MainHandSlot"));
 	if (itemLink ~= nil) then
-		local itemLevel = self:ScanForItemLevel(itemLink);
-		if(itemLevel == 750) then
-			mainHandSkipped = true
-		else
-			total = total + itemLevel + itemLevel
-		end
+		mainHandilvl = self:ScanForItemLevel(itemLink);
 	end
 	local itemLink = GetInventoryItemLink(unit, GetInventorySlotInfo("SecondaryHandSlot"));
 	if (itemLink ~= nil) then
-		local itemLevel = self:ScanForItemLevel(itemLink);
-		if(itemLevel == 750) then
-			if(mainHandSkipped) then
-				total = total + itemLevel + itemLevel
-				print("Both weapons are 750 ilvl. Bug?")
-			end
-		else
-			total = total + itemLevel + itemLevel
-		end
+		secondHandilvl = self:ScanForItemLevel(itemLink);
+	end
+	if(mainHandilvl > secondHandilvl) then
+		total = total + (mainHandilvl * 2)
+	else
+		total = total + (secondHandilvl * 2)
+	end
+	if(mainHandilvl == secondHandilvl and mainHandilvl == 750) then
+		print("Both weapons are ilvl 750. Bug?")
 	end
 	if(total < 1) then
 		return
