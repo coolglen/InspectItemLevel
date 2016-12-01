@@ -60,22 +60,20 @@ function IlvlFrame:GetArtifactWeaponLevel(unit, GUID)
 	local itemLink = GetInventoryItemLink(unit, GetInventorySlotInfo("MainHandSlot"))
 	if (itemLink ~= nil) then
 		mainHandilvl = self:ScanForItemLevel(itemLink)
-		print(itemLink.." mh, "..mainHandilvl)
 	end
 	local itemLink = GetInventoryItemLink(unit, GetInventorySlotInfo("SecondaryHandSlot"))
 	if (itemLink ~= nil) then
 		secondHandilvl = self:ScanForItemLevel(itemLink)
-		print(itemLink.." sh, "..secondHandilvl)
 	end
 	if(mainHandilvl == secondHandilvl and mainHandilvl == 750) then
-		print("Both weapons are ilvl 750. Bug?")
+		--print("Both weapons are ilvl 750. Bug?")
 	end
 	
 	
 	--This should fix the artifact weapon returning the wrong ilvl
-	if(currentInspect.GUID and GetTime() - currentInspect.time < 1 ) then
+	--in the multiple INSPECT_READY events the correct ilvl seems to always get returned but not always on the last event call
+	if(currentInspect.GUID and GetTime() - currentInspect.time < 0.6 ) then
 		if(mainHandilvl and currentInspect.mainHandMaxIlvl	< mainHandilvl ) then
-			print("isHigher")
 			currentInspect.mainHandMaxIlvl = mainHandilvl
 		end
 		if(secondHandilvl and currentInspect.secondHandMaxIlvl	< secondHandilvl ) then
@@ -90,7 +88,6 @@ function IlvlFrame:GetArtifactWeaponLevel(unit, GUID)
 	
 	mainHandilvl = currentInspect.mainHandMaxIlvl
 	secondHandMaxIlvl = currentInspect.secondHandMaxIlvl
-	print(mainHandilvl.."  "..secondHandilvl)
 	
 	if(mainHandilvl > secondHandilvl) then
 		return mainHandilvl
