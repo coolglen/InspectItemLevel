@@ -1,16 +1,13 @@
---version 1.2.0
+--version 1.1.0
+local Slots = {
 	"Head","Neck","Shoulder","Back","Chest","Wrist",
 	"Hands","Waist","Legs","Feet","Finger0","Finger1",
-	"Trinket0","Trinket1", "MainHand", "SecondaryHand"
+	"Trinket0","Trinket1"
 }
 
 local InspectCache = {}
 
 local ILvlFrame = CreateFrame("Frame", "IlvlFrame")
-local lastInspectReady
-local inspecting = false
-local InspectGUID
-
 ILvlFrame:RegisterEvent("INSPECT_READY")
 ILvlFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 
@@ -28,30 +25,30 @@ ILvlFrame:SetScript("OnEvent", function(self, event_name, ...)
 	end
 end)
 
-function ILvlFrame:INSPECT_READY(event, GUID)	
-	ILvlFrame.text:SetText(format("ilvl: ??"))
-	lastInspectReady = GetTime()
-	InspectGUID = GUID
-	inspecting = true
-	
-end
-
-function ILvlFrame:intializeItemLevelInspection()
-
+function ILvlFrame:INSPECT_READY(event, GUID)
 	if InspectFrame and InspectFrame.unit then 
 		local UnitIlevel = 0
-		if not InspectCache[InspectGUID] or InspectCache[InspectGUID].time > 800 then
-			UnitIlevel = self:GetItemLvL(InspectFrame.unit)
-			InspectCache[InspectGUID] = {time = GetTime()}
-			InspectCache[InspectGUID].ilevel = UnitIlevel
+		local cached = false
+		
+		UnitIlevel = self:GetItemLvL(InspectFrame.unit)
+		if(UnitIlevel ~= nil) then
+			InspectCache[GUID] = {time = GetTime(), ilevel = UnitIlevel}
 		else
-			UnitIlevel = InspectCache[InspectGUID].ilevel
+			if (InspectCache[GUID] ~= nil) then
+				if(InspectCache[GUID].ilevel) then
+					cached = true
+					UnitIlevel = InspectCache[GUID].ilevel
+				end
+			end
 		end
 		if InspectFrame and InspectFrame.unit then
 			ILvlFrame:SetParent(InspectFrame)
 			ILvlFrame:SetPoint("BOTTOM", InspectFrame, "RIGHT", -45, 15)
-			
-			ILvlFrame.text:SetText(format("ilvl: ".. tostring(UnitIlevel)))
+			if(cached) then
+				ILvlFrame.text:SetText(format("Cached ilvl: ".. tostring(UnitIlevel)))
+			else
+				ILvlFrame.text:SetText(format("ilvl: ".. tostring(UnitIlevel)))
+			end
 			
 		end
 	end
@@ -62,22 +59,42 @@ function ILvlFrame:PLAYER_TARGET_CHANGED()
 end
 
 function ILvlFrame:GetItemLvL(unit)
-	local total, item = 0, 0;
+	local total = 0;
 	for i = 1, #Slots do
 		local itemLink = GetInventoryItemLink(unit, GetInventorySlotInfo(("%sSlot"):format(Slots[i])));
 		if (itemLink ~= nil) then
 			local itemLevel = self:ScanForItemLevel(itemLink);
-	
 			if(itemLevel and itemLevel > 0) then
-				item = item + 1;
 				total = total + itemLevel;
 			end
+		end
+	end
+	local mainHandSkipped = false
+	local itemLink = GetInventoryItemLink(unit, GetInventorySlotInfo("MainHandSlot"));
+	if (itemLink ~= nil) then
+		local itemLevel = self:ScanForItemLevel(itemLink);
+		if(itemLevel == 750) then
+			mainHandSkipped = true
+		else
+			total = total + itemLevel + itemLevel
+		end
+	end
+	local itemLink = GetInventoryItemLink(unit, GetInventorySlotInfo("SecondaryHandSlot"));
+	if (itemLink ~= nil) then
+		local itemLevel = self:ScanForItemLevel(itemLink);
+		if(itemLevel == 750) then
+			if(mainHandSkipped) then
+				total = total + itemLevel + itemLevel
+				print("Both weapons are 750 ilvl. Bug?")
+			end
+		else
+			total = total + itemLevel + itemLevel
 		end
 	end
 	if(total < 1) then
 		return
 	end
-	return floor(total / item)
+	return floor(total / 16)
 end
 
 function IlvlFrame:GetAvailableTooltip()
@@ -88,13 +105,12 @@ function IlvlFrame:GetAvailableTooltip()
 	end
 end
 
---randomly some items dont give the correct ItemLevel a second inspectiong seems to give the correct value
 function ILvlFrame:ScanForItemLevel(itemLink)
 	local tt = self:GetAvailableTooltip();
 	tt:SetOwner(UIParent, "ANCHOR_NONE");
 	tt:SetHyperlink(itemLink);
 	tt:Show();
-	
+
 	local itemLevel = 0;
 	for i = 2, tt:NumLines() do
 		local text = _G[ tt:GetName() .."TextLeft"..i]:GetText();
@@ -109,14 +125,13 @@ function ILvlFrame:ScanForItemLevel(itemLink)
 	return itemLevel
 end
 
---needs a delay to make sure all INSPECT_READY has finished calling
-local function onUpdate(self,elapsed)
-	if (inspecting) then
-		if(GetTime() - lastInspectReady > .5) then
-		inspecting = false
-		ILvlFrame:intializeItemLevelInspection()
-		end
-	end
-end
 
-ILvlFrame:SetScript("OnUpdate", onUpdate)
+
+
+
+
+
+
+
+
+
