@@ -1,4 +1,4 @@
---version 1.1.0
+--version 1.3.0
 local Slots = {
 	"Head","Neck","Shoulder","Back","Chest","Wrist",
 	"Hands","Waist","Legs","Feet","Finger0","Finger1",
