@@ -114,14 +114,3 @@ function ILvlFrame:ScanForItemLevel(itemLink)
 	tt:Hide();
 	return itemLevel
 end
-
-
-
-
-
-
-
-
-
-
-
