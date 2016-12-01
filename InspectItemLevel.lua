@@ -94,7 +94,6 @@ function ILvlFrame:GetItemLvL(unit)
 	end
 	if(iterate == 14) then
 		local artilvl = self:GetArtifactWeaponLevel(unit)
-		print("Artifact weapon is "..artilvl)
 		total = total + (artilvl * 2)
 	end
 	
