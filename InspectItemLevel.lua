@@ -2,7 +2,7 @@
 local Slots = {
 	"Head","Neck","Shoulder","Back","Chest","Wrist",
 	"Hands","Waist","Legs","Feet","Finger0","Finger1",
-	"Trinket0","Trinket1"
+	"Trinket0","Trinket1","MainHand","SecondaryHand"
 }
 
 local InspectCache = {}
@@ -53,34 +53,51 @@ function ILvlFrame:INSPECT_READY(event, GUID)
 	end
 end
 
-function ILvlFrame:GetItemLvL(unit)
-	local total = 0;
-	for i = 1, #Slots do
-		local itemLink = GetInventoryItemLink(unit, GetInventorySlotInfo(("%sSlot"):format(Slots[i])));
-		if (itemLink ~= nil) then
-			local itemLevel = self:ScanForItemLevel(itemLink);
-			if(itemLevel and itemLevel > 0) then
-				total = total + itemLevel;
-			end
-		end
-	end
-	local mainHandilvl, secondHandilvl = 0, 0;
-	local itemLink = GetInventoryItemLink(unit, GetInventorySlotInfo("MainHandSlot"));
+function IlvlFrame:GetArtifactWeaponLevel(unit)
+	local mainHandilvl, secondHandilvl = 0, 0
+	local itemLink = GetInventoryItemLink(unit, GetInventorySlotInfo("MainHandSlot"))
 	if (itemLink ~= nil) then
-		mainHandilvl = self:ScanForItemLevel(itemLink);
+		mainHandilvl = self:ScanForItemLevel(itemLink)
 	end
-	local itemLink = GetInventoryItemLink(unit, GetInventorySlotInfo("SecondaryHandSlot"));
+	local itemLink = GetInventoryItemLink(unit, GetInventorySlotInfo("SecondaryHandSlot"))
 	if (itemLink ~= nil) then
-		secondHandilvl = self:ScanForItemLevel(itemLink);
-	end
-	if(mainHandilvl > secondHandilvl) then
-		total = total + (mainHandilvl * 2)
-	else
-		total = total + (secondHandilvl * 2)
+		secondHandilvl = self:ScanForItemLevel(itemLink)
 	end
 	if(mainHandilvl == secondHandilvl and mainHandilvl == 750) then
 		print("Both weapons are ilvl 750. Bug?")
 	end
+	if(mainHandilvl > secondHandilvl) then
+		return mainHandilvl
+	else
+		return secondHandilvl
+	end
+end
+
+function ILvlFrame:GetItemLvL(unit)
+	local total = 0
+	local iterate = 16
+	local mainHandLink = GetInventoryItemLink(unit, GetInventorySlotInfo("MainHandSlot"))
+	if(mainHandLink ~= nil) then
+		_,_,rarity = GetItemInfo(mainHandLink)
+		if(rarity == 6) then
+			iterate = 14
+		end
+	end
+	for i = 1, iterate do
+		local itemLink = GetInventoryItemLink(unit, GetInventorySlotInfo(("%sSlot"):format(Slots[i])))
+		if (itemLink ~= nil) then
+			local itemLevel = self:ScanForItemLevel(itemLink)
+			if(itemLevel and itemLevel > 0) then
+				total = total + itemLevel
+			end
+		end
+	end
+	if(iterate == 14) then
+		local artilvl = self:GetArtifactWeaponLevel(unit)
+		print("Artifact weapon is "..artilvl)
+		total = total + (artilvl * 2)
+	end
+	
 	if(total < 1) then
 		return
 	end
@@ -96,21 +113,21 @@ function IlvlFrame:GetAvailableTooltip()
 end
 
 function ILvlFrame:ScanForItemLevel(itemLink)
-	local tt = self:GetAvailableTooltip();
-	tt:SetOwner(UIParent, "ANCHOR_NONE");
-	tt:SetHyperlink(itemLink);
-	tt:Show();
+	local tt = self:GetAvailableTooltip()
+	tt:SetOwner(UIParent, "ANCHOR_NONE")
+	tt:SetHyperlink(itemLink)
+	tt:Show()
 
-	local itemLevel = 0;
+	local itemLevel = 0
 	for i = 2, tt:NumLines() do
-		local text = _G[ tt:GetName() .."TextLeft"..i]:GetText();
+		local text = _G[ tt:GetName() .."TextLeft"..i]:GetText()
 		if(text and text ~= "") then
-			local value = tonumber(text:match(ITEM_LEVEL:gsub( "%%d", "(%%d+)" )));
+			local value = tonumber(text:match(ITEM_LEVEL:gsub( "%%d", "(%%d+)" )))
 			if(value) then
-				itemLevel = value;
+				itemLevel = value
 			end
 		end
 	end
-	tt:Hide();
+	tt:Hide()
 	return itemLevel
 end
